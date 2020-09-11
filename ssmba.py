@@ -42,7 +42,10 @@ def gen_neighborhood(args):
         labels = labels[shard_start:shard_end]
 
     # open output files
-    s_rec_file = open(args.output_prefix + '_' + str(args.shard), 'w')
+    if args.num_shards != 1:
+        s_rec_file = open(args.output_prefix + '_' + str(args.shard), 'w')
+    else:
+        s_rec_file = open(args.output_prefix, 'w')
     l_rec_file = open(args.output_prefix + '.label', 'w')
 
     # sentences and labels to process
@@ -118,7 +121,7 @@ def gen_neighborhood(args):
             tok, mask = hf_masked_encode(
                     tokenizer,
                     *s,
-                    mask_prob=args.mask_prob,
+                    noise_prob=args.noise_prob,
                     random_token_prob=args.random_token_prob,
                     leave_unmasked_prob=args.leave_unmasked_prob,
             )
@@ -178,7 +181,7 @@ if __name__ == "__main__":
     parser.add_argument('--seed', type=int,
             help='Random seed to use for reconstruction and noising.')
 
-    parser.add_argument('--model', '-m', type=str,
+    parser.add_argument('--model', '-m', type=str, default='bert-base-uncased',
             help='Name of HuggingFace BERT model to use for reconstruction,'
             ' or filepath to local model directory.')
 
@@ -200,7 +203,7 @@ if __name__ == "__main__":
             help='Prefix path for output files, including augmentations and'
             ' preserved labels.')
 
-    parser.add_argument('--mask-prob', '-p', type=float, default=0.15,
+    parser.add_argument('--noise-prob', '-p', type=float, default=0.15,
             help='Probability for selecting a token for noising.'
             ' Selected tokens are then masked, randomly replaced,'
             ' or left the same.')
@@ -231,8 +234,8 @@ if __name__ == "__main__":
             help='Maximum length input for augmentation.')
 
     parser.add_argument('--topk', '-k', type=int, default=-1,
-            help='Top k to use for sampling. -1 indicates'
-            ' unrestricted sampling.')
+            help='Top k to use for sampling reconstructed tokens from'
+            ' the BERT model. -1 indicates unrestricted sampling.')
 
     args = parser.parse_args()
 

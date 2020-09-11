@@ -5,7 +5,7 @@ def hf_masked_encode(
         tokenizer,
         sentence: str,
         *addl_sentences,
-        mask_prob=0.0,
+        noise_prob=0.0,
         random_token_prob=0.0,
         leave_unmasked_prob=0.0):
 
@@ -19,12 +19,12 @@ def hf_masked_encode(
 
     tokens = np.asarray(tokenizer.encode(sentence, *addl_sentences, add_special_tokens=True))
 
-    if mask_prob == 0.0:
+    if noise_prob == 0.0:
         return tokens
 
     sz = len(tokens)
     mask = np.full(sz, False)
-    num_mask = int(mask_prob * sz + np.random.rand())
+    num_mask = int(noise_prob * sz + np.random.rand())
 
     mask_choice_p = np.ones(sz)
     for i in range(sz):
