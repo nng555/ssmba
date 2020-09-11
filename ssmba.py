@@ -32,7 +32,13 @@ def gen_neighborhood(args):
     num_lines = len(lines)
     lines = [[[s] for s in s_list] for s_list in list(zip(*lines))]
 
-    labels = [s.strip() for s in open(args.label_file).readlines()]
+    # load label file if it exists
+    if args.label_file:
+        labels = [s.strip() for s in open(args.label_file).readlines()]
+        output_labels = True
+    else:
+        labels = [0] * num_lines
+        output_labels = False
 
     # shard the input and labels
     if args.num_shards > 0:
@@ -44,10 +50,12 @@ def gen_neighborhood(args):
     # open output files
     if args.num_shards != 1:
         s_rec_file = open(args.output_prefix + '_' + str(args.shard), 'w')
-        l_rec_file = open(args.output_prefix + '_' + str(args.shard) + '.label', 'w')
+        if output_labels:
+            l_rec_file = open(args.output_prefix + '_' + str(args.shard) + '.label', 'w')
     else:
         s_rec_file = open(args.output_prefix, 'w')
-        l_rec_file = open(args.output_prefix + '.label', 'w')
+        if output_labels:
+            l_rec_file = open(args.output_prefix + '.label', 'w')
 
     # sentences and labels to process
     sents = []
@@ -94,7 +102,8 @@ def gen_neighborhood(args):
                 # write generated sentences
                 for sg in gen_sents[1:]:
                     s_rec_file.write('\t'.join([repr(val)[1:-1] for val in sg]) + '\n')
-                    l_rec_file.write(label + '\n')
+                    if output_labels:
+                        l_rec_file.write(label + '\n')
 
         # fill batch
         sents, l, next_sent, num_gen, num_tries, gen_index = \
@@ -196,7 +205,7 @@ if __name__ == "__main__":
             ' Inputs should be separated by newlines with tabs indicating'
             ' BERT <SEP> tokens.')
 
-    parser.add_argument('--label-file', '-l', type=str,
+    parser.add_argument('--label-file', '-l', type=str, default=None,
             help='Path of input label file for augmentation if using '
             ' label preservation.' )
 
