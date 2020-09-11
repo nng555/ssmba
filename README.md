@@ -16,7 +16,7 @@ When applied in NLP settings, we apply masked language modeling (MLM) training n
 
 `ssmba.py` is based on the HuggingFace Transformers library and uses BERT models implemented in this library for reconstruction. Any valid BERT model in the [HuggingFace model library](https://huggingface.co/models) can be used, as well as local model paths.
 
-`ssmba.py` takes as input a text file, label file, and reconstruction model, and outputs the augmented data and corresponding preserved labels. We provide an example command below.
+`ssmba.py` takes as input a text file, label file, and reconstruction model, and outputs the augmented data and corresponding preserved labels. If a label file is not provied, only the augmented data is output. We provide an example command below.
 
 ```
 python ssmba.py \
