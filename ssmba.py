@@ -44,9 +44,10 @@ def gen_neighborhood(args):
     # open output files
     if args.num_shards != 1:
         s_rec_file = open(args.output_prefix + '_' + str(args.shard), 'w')
+        l_rec_file = open(args.output_prefix + '_' + str(args.shard) + '.label', 'w')
     else:
         s_rec_file = open(args.output_prefix, 'w')
-    l_rec_file = open(args.output_prefix + '.label', 'w')
+        l_rec_file = open(args.output_prefix + '.label', 'w')
 
     # sentences and labels to process
     sents = []
