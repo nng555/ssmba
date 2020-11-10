@@ -87,7 +87,6 @@ def gen_neighborhood(args):
 
     # main augmentation loop
     while (sents != []):
-        print(sents)
 
         # remove any sentences that are done generating and dump to file
         for i in range(len(num_gen))[::-1]:
@@ -181,7 +180,7 @@ def gen_neighborhood(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--shard', '-s', type=int, default=0,
+    parser.add_argument('-s', '--shard', type=int, default=0,
             help='Shard of input to process. Output filename '
             'will have _${shard} appended.')
 
@@ -191,7 +190,7 @@ if __name__ == "__main__":
     parser.add_argument('--seed', type=int,
             help='Random seed to use for reconstruction and noising.')
 
-    parser.add_argument('--model', '-m', type=str, default='bert-base-uncased',
+    parser.add_argument('-m', '--model', type=str, default='bert-base-uncased',
             help='Name of HuggingFace BERT model to use for reconstruction,'
             ' or filepath to local model directory.')
 
@@ -200,40 +199,40 @@ if __name__ == "__main__":
             ' or filepath to local tokenizer. If None, uses the same'
             ' as model.')
 
-    parser.add_argument('--in-file', '-i', type=str,
+    parser.add_argument('-i', '--in-file', type=str,
             help='Path of input text file for augmentation.'
             ' Inputs should be separated by newlines with tabs indicating'
             ' BERT <SEP> tokens.')
 
-    parser.add_argument('--label-file', '-l', type=str, default=None,
+    parser.add_argument('-l', '--label-file',  type=str, default=None,
             help='Path of input label file for augmentation if using '
             ' label preservation.' )
 
-    parser.add_argument('--output-prefix', '-o', type=str,
+    parser.add_argument('-o', '--output-prefix', type=str,
             help='Prefix path for output files, including augmentations and'
             ' preserved labels.')
 
-    parser.add_argument('--noise-prob', '-p', type=float, default=0.15,
+    parser.add_argument('-p', '--noise-prob', type=float, default=0.15,
             help='Probability for selecting a token for noising.'
             ' Selected tokens are then masked, randomly replaced,'
             ' or left the same.')
 
-    parser.add_argument('--random-token-prob', '-r', type=float, default=0.1,
+    parser.add_argument('-r', '--random-token-prob', type=float, default=0.1,
             help='Probability of a selected token being replaced'
             ' randomly from the vocabulary.')
 
-    parser.add_argument('--leave-unmasked-prob', '-u', type=float, default=0.1,
+    parser.add_argument('-u', '--leave-unmasked-prob', type=float, default=0.1,
             help='Probability of a selected token being left'
             ' unmasked and unchanged.')
 
-    parser.add_argument('--batch', '-b', type=int, default=8,
+    parser.add_argument('-b', '--batch', type=int, default=8,
             help='Batch size of inputs to reconstruction model.')
 
-    parser.add_argument('--num-samples', '-n', type=int, default=4,
+    parser.add_argument('-n', '--num-samples', type=int, default=4,
             help='Number of augmented samples to generate for each'
             ' input example.')
 
-    parser.add_argument('--max-tries', '-t', type=int, default=10,
+    parser.add_argument('-t', '--max-tries', type=int, default=10,
             help='Number of tries to generate a unique sample'
             ' before giving up.')
 
