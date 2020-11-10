@@ -34,9 +34,6 @@ def hf_masked_encode(
 
     mask[np.random.choice(sz, num_mask, replace=False, p=mask_choice_p)] = True
 
-    mask_targets = np.full(len(mask), tokenizer.pad_token_id)
-    mask_targets[mask] = tokens[mask == 1]
-
     # decide unmasking and random replacement
     rand_or_unmask_prob = random_token_prob + leave_unmasked_prob
     if rand_or_unmask_prob > 0.0:
@@ -68,7 +65,10 @@ def hf_masked_encode(
                 p=weights,
             )
 
-    return torch.tensor(tokens).long(), torch.tensor(mask).long()
+    mask_targets = np.full(len(mask), tokenizer.pad_token_id)
+    mask_targets[mask] = tokens[mask == 1]
+
+    return torch.tensor(tokens).long(), torch.tensor(mask_targets).long()
 
 def hf_reconstruction_prob_tok(masked_tokens, target_tokens, tokenizer, model, softmax_mask, reconstruct=False, topk=1):
     single = False
