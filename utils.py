@@ -100,7 +100,7 @@ def hf_reconstruction_prob_tok(masked_tokens, target_tokens, tokenizer, model, s
 
     features = outputs[1]
 
-    logits = features[masked_index]
+    logits = features[masked_index].detach().clone()
     for l in logits:
         l[softmax_mask] = float('-inf')
     probs = logits.softmax(dim=-1)
