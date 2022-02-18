@@ -154,7 +154,7 @@ def fill_batch(args,
                 break
 
             next_sents = [s_list[next_sent][0] for s_list in lines]
-            if len(next_sents > 2):
+            if len(next_sents) > 2:
                 raise Exception("Only single sentences or sentence pairs can be encoded.")
             next_len = len(tokenizer.encode(*next_sents))
 
