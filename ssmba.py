@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from transformers import AutoTokenizer, AutoModelWithLMHead
+from transformers import AutoTokenizer, AutoModelForMaskedLM
 from utils import hf_masked_encode, hf_reconstruction_prob_tok, fill_batch
 
 def gen_neighborhood(args):
@@ -14,7 +14,7 @@ def gen_neighborhood(args):
         np.random.seed(args.seed)
 
     # load model and tokenizer
-    r_model = AutoModelWithLMHead.from_pretrained(args.model)
+    r_model = AutoModelForMaskedLM.from_pretrained(args.model)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     r_model.eval()
     if torch.cuda.is_available():

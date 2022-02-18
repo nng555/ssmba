@@ -95,10 +95,9 @@ def hf_reconstruction_prob_tok(masked_tokens, target_tokens, tokenizer, model, s
 
     outputs = model(
         masked_tokens.long().to(device=next(model.parameters()).device),
-        masked_lm_labels=target_tokens
     )
 
-    features = outputs[1]
+    features = outputs[0]
 
     logits = features[masked_index].detach().clone()
     for l in logits:
@@ -155,6 +154,8 @@ def fill_batch(args,
                 break
 
             next_sents = [s_list[next_sent][0] for s_list in lines]
+            if len(next_sents > 2):
+                raise Exception("Only single sentences or sentence pairs can be encoded.")
             next_len = len(tokenizer.encode(*next_sents))
 
             # skip input if too short or long
@@ -167,7 +168,6 @@ def fill_batch(args,
             next_sent_lists = [s_list[next_sent] for s_list in lines]
             sents.append(list(zip(*next_sent_lists)))
             l.append(labels[next_sent])
-
             num_gen.append(0)
             num_tries.append(0)
             gen_index.append(0)
