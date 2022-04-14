@@ -3,8 +3,8 @@ import torch
 
 def hf_masked_encode(
         tokenizer,
-        sentence: str,
-        *addl_sentences,
+        sentences,
+        context=None,
         noise_prob=0.0,
         random_token_prob=0.0,
         leave_unmasked_prob=0.0):
@@ -17,7 +17,13 @@ def hf_masked_encode(
                 weights[v] = 0
         weights = weights / weights.sum()
 
-    tokens = np.asarray(tokenizer.encode(sentence, *addl_sentences, add_special_tokens=True))
+    if context is not None:
+        full_sentences = [s + c for s, c in zip(sentences, context)]
+        sentence_sz = len(np.asarray(tokenizer.encode(*sentences, add_special_tokens=True))) - 1
+    else:
+        full_sentences = sentences
+
+    tokens = np.asarray(tokenizer.encode(*full_sentences, add_special_tokens=True))
 
     if noise_prob == 0.0:
         return tokens
@@ -30,6 +36,9 @@ def hf_masked_encode(
     for i in range(sz):
         if tokens[i] in [tokenizer.sep_token_id, tokenizer.cls_token_id, tokenizer.pad_token_id]:
             mask_choice_p[i] = 0
+        if context is not None:
+            if i > sentence_sz:
+                mask_choice_p[i] = 0
     mask_choice_p = mask_choice_p / mask_choice_p.sum()
 
     mask[np.random.choice(sz, num_mask, replace=False, p=mask_choice_p)] = True
@@ -138,7 +147,9 @@ def fill_batch(args,
                tokenizer,
                sents,
                l,
+               context_list,
                lines,
+               contexts,
                labels,
                next_sent,
                num_gen,
@@ -154,8 +165,9 @@ def fill_batch(args,
                 break
 
             next_sents = [s_list[next_sent][0] for s_list in lines]
-            if len(next_sents) > 2:
-                raise Exception("Only single sentences or sentence pairs can be encoded.")
+            if contexts is not None:
+                next_contexts = [c_list[next_sent][0] for c_list in contexts]
+                next_sents = [s + c for (s, c) in zip(next_sents, next_contexts)]
             next_len = len(tokenizer.encode(*next_sents))
 
             # skip input if too short or long
@@ -166,6 +178,9 @@ def fill_batch(args,
         # add it to our lists
         if next_sent < len(lines[0]):
             next_sent_lists = [s_list[next_sent] for s_list in lines]
+            if contexts is not None:
+                next_context_list = [c_list[next_sent][0] for c_list in contexts]
+                context_list.append(next_context_list)
             sents.append(list(zip(*next_sent_lists)))
             l.append(labels[next_sent])
             num_gen.append(0)
@@ -175,5 +190,5 @@ def fill_batch(args,
         else:
             break
 
-    return sents, l, next_sent, num_gen, num_tries, gen_index
+    return sents, l, context_list, next_sent, num_gen, num_tries, gen_index
 

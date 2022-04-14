@@ -31,6 +31,7 @@ def gen_neighborhood(args):
     lines = [tuple(s.strip().split('\t')) for s in open(args.in_file).readlines()]
     num_lines = len(lines)
     lines = [[[s] for s in s_list] for s_list in list(zip(*lines))]
+    assert len(lines) <= 2, "Only single sentences or sentence pairs can be encoded."
 
     # load label file if it exists
     if args.label_file:
@@ -39,6 +40,19 @@ def gen_neighborhood(args):
     else:
         labels = [0] * num_lines
         output_labels = False
+
+    # load the context if it exists
+    if args.context:
+        contexts = [tuple(s.strip().split('\t')) for s in open(args.context).readlines()]
+        contexts = [[[s] for s in s_list] for s_list in list(zip(*contexts))]
+        assert not (len(lines) == 1 and len(contexts) == 2), "Too many contexts for inputs"
+        # broadcast
+        if len(lines) == 2 and len(contexts) == 1:
+            contexts = contexts.append(contexts[0])
+    else:
+        contexts = None
+
+
 
     # shard the input and labels
     if args.num_shards > 0:
@@ -60,6 +74,7 @@ def gen_neighborhood(args):
     # sentences and labels to process
     sents = []
     l = []
+    context_list = [] if contexts is not None else None
 
     # number sentences generated
     num_gen = []
@@ -73,12 +88,14 @@ def gen_neighborhood(args):
     # next sentence index to draw from
     next_sent = 0
 
-    sents, l, next_sent, num_gen, num_tries, gen_index = \
+    sents, l, context_list, next_sent, num_gen, num_tries, gen_index = \
             fill_batch(args,
                        tokenizer,
                        sents,
                        l,
+                       context_list,
                        lines,
+                       contexts,
                        labels,
                        next_sent,
                        num_gen,
@@ -105,12 +122,14 @@ def gen_neighborhood(args):
                         l_rec_file.write(label + '\n')
 
         # fill batch
-        sents, l, next_sent, num_gen, num_tries, gen_index = \
+        sents, l, context_list, next_sent, num_gen, num_tries, gen_index = \
                 fill_batch(args,
                            tokenizer,
                            sents,
                            l,
+                           context_list,
                            lines,
+                           contexts,
                            labels,
                            next_sent,
                            num_gen,
@@ -127,9 +146,11 @@ def gen_neighborhood(args):
 
         for i in range(len(gen_index)):
             s = sents[i][gen_index[i]]
+            c = context_list[i] if context_list is not None else None
             tok, mask = hf_masked_encode(
                     tokenizer,
-                    *s,
+                    s,
+                    context=c,
                     noise_prob=args.noise_prob,
                     random_token_prob=args.random_token_prob,
                     leave_unmasked_prob=args.leave_unmasked_prob,
@@ -203,6 +224,11 @@ if __name__ == "__main__":
             help='Path of input text file for augmentation.'
             ' Inputs should be separated by newlines with tabs indicating'
             ' BERT <SEP> tokens.')
+
+    parser.add_argument('-c', '--context', type=str, default=None,
+            help='Path of text file with extra context to append to generation.'
+            ' Inputs should be separated by newlines and will be broadcast'
+            ' if the number of inputs does not match.')
 
     parser.add_argument('-l', '--label-file',  type=str, default=None,
             help='Path of input label file for augmentation if using '
