@@ -17,9 +17,9 @@ def hf_masked_encode(
                 weights[v] = 0
         weights = weights / weights.sum()
 
+    sentence_sz = len(np.asarray(tokenizer.encode(*sentences, add_special_tokens=True))) - 1
     if context is not None:
-        full_sentences = [s + c for s, c in zip(sentences, context)]
-        sentence_sz = len(np.asarray(tokenizer.encode(*sentences, add_special_tokens=True))) - 1
+        full_sentences = [s + ' ' + c for s, c in zip(sentences, context)]
     else:
         full_sentences = sentences
 
@@ -30,7 +30,7 @@ def hf_masked_encode(
 
     sz = len(tokens)
     mask = np.full(sz, False)
-    num_mask = int(noise_prob * sz + np.random.rand())
+    num_mask = int(noise_prob * sentence_sz + np.random.rand())
 
     mask_choice_p = np.ones(sz)
     for i in range(sz):
@@ -167,7 +167,7 @@ def fill_batch(args,
             next_sents = [s_list[next_sent][0] for s_list in lines]
             if contexts is not None:
                 next_contexts = [c_list[next_sent][0] for c_list in contexts]
-                next_sents = [s + c for (s, c) in zip(next_sents, next_contexts)]
+                next_sents = [s + ' ' + c for (s, c) in zip(next_sents, next_contexts)]
             next_len = len(tokenizer.encode(*next_sents))
 
             # skip input if too short or long
